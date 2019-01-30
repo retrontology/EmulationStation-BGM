@@ -185,11 +185,9 @@ class MusicPlayer(Player):
         if not fade_duration: fade_duration = self.fade_duration
         if not step_duration: step_duration = self.step_duration
         steps = fade_duration / step_duration
-        vdelta = end_volume - start_volume
+        vps = vdelta = end_volume - start_volume
         if steps:
             vps = vdelta / steps
-        else:
-            vps = vdelta
         if start_volume > end_volume:
             vol_g = start_volume
             vol_l = end_volume

@@ -463,7 +463,7 @@ class Application:
         logging.debug("Parsing arguments into dictionary: {}".format(args))
         parsed_args = {'player_cmd': {}, 'values': {}, 'flags': set()}
         if args:
-            if not args[0] in ['set', 'play', 'stop', 'next', 'prev', 'quit', 'help']:
+            if not args[0] in ['set', 'play', 'stop', 'next', 'prev', 'quit']:
                 logging.warning("Missing player command, tossing all arguments.")
             else:
                 player_cmd = args.pop(0)
@@ -501,9 +501,6 @@ class Application:
                 pass
             elif 'quit' in args['player_cmd']:
                 sys.exit()
-            elif 'help' in args['player_cmd']:
-                ##FIXIT##
-                pass
         logging.debug("Processing arguments complete")
     
     def process_monitor(self):
@@ -594,6 +591,18 @@ def check_pipes(pipe_file):
     logging.debug("Finished pipe check, returning PID: {}".format(PID))
     return PID
 
+
+help_message = "\
+    Usage: derp derp\n\
+    ##FIXIT##\n\
+    RIP HELP\n\
+    I wasn't paid for this\n\
+    I wish I were\n\
+    It's 2:30am\n\
+    #BadProgrammerHabits\n\
+    "
+
+
 if __name__ == "__main__":
     logging.debug("----------= EmulationStation BGM =----------")
     app = Application(config_path=config_path, process_names=proc_names)
@@ -605,4 +614,9 @@ if __name__ == "__main__":
         if sys.argv[1] == 'start':
             app.run()
     elif PID and len(sys.argv) > 1:
-        app.controller(PID, sys.argv[1:])
+        if sys.argv[1] == 'help':
+            print(help_message)
+        else:
+            app.controller(PID, sys.argv[1:])
+    else:
+        print(help_message)

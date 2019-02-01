@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 from __future__ import division
 import os, sys, time, random, atexit, threading, ast, ConfigParser, logging
+logging.disable(logging.DEBUG)
 config_path = '~/github/emulationstation-bgm/addons.ini' # '~/RetroPie/scripts/addons.ini'
 proc_names = ['htop'] #None
 # proc_names = ["wolf4sdl-3dr-v14", "wolf4sdl-gt-v14", "wolf4sdl-spear", "wolf4sdl-sw-v14", 
@@ -50,7 +51,6 @@ def readline(pipein):
 
 log_path = os.path.join(os.path.dirname(os.path.expanduser(config_path)), 'esbgm.log')
 logging.basicConfig(filename=log_path,level=logging.DEBUG)
-#logging.disable(logging.DEBUG)
 class Player(object):
     def __init__(self):
         logging.debug("Instantiating all music player variables")
@@ -518,7 +518,7 @@ class Application:
             if procname[:-1] in self.process_names:
                 #Turn down the music if actually playing (not paused)
                 logging.debug("Flagged process found: {} | Process countdown: {} | Player Status: {}".format(procname[:-1], self.proc_countdown, self.mp.status))
-                if self.mp.status == 1 and self.proc_countdown == 0: ##FIXIT## If process is running when player starts (status not set to Playing yet), countdown is started without turning down the volume.
+                if self.mp.status == 1 and self.proc_countdown == 0:
                     if self.config['proc_volume']:
                         logging.debug("Proc_volume: {} | Fading volume to match proc_volume".format(self.config['proc_volume']))
                         self.mp.fade(self.mp.mixer.get_volume(), self.config['proc_volume'], fade_duration=self.config['proc_fade'], step_duration=10) #Proc_step?
@@ -527,7 +527,7 @@ class Application:
                         self.mp.stop(fade_duration=self.config['proc_fade'], force=True)
                     self.proc_mute = True
                 logging.debug("Refreshing process countdown timer: {}".format(self.config['proc_delay']))
-                self.proc_countdown = self.config['proc_delay']
+                if self.proc_mute: self.proc_countdown = self.config['proc_delay']
         # Fade in after countdown
         if self.proc_countdown <= 0 and self.proc_mute:
             logging.debug("Countdown complete, resuming music")

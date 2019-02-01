@@ -50,7 +50,7 @@ def readline(pipein):
 
 log_path = os.path.join(os.path.dirname(os.path.expanduser(config_path)), 'esbgm.log')
 logging.basicConfig(filename=log_path,level=logging.DEBUG)
-logging.disable(logging.DEBUG)
+#logging.disable(logging.DEBUG)
 class Player(object):
     def __init__(self):
         logging.debug("Instantiating all music player variables")
@@ -492,12 +492,16 @@ class Application:
             self.c.write_config(args['values'])
         elif self.mp:  # Pseudo-daemon specific player commands.
             if 'play' in args['player_cmd']:
+                ##FIXIT##
                 pass
             elif 'stop' in args['player_cmd']:
+                ##FIXIT##
                 pass
             elif 'next' in args['player_cmd']:
+                ##FIXIT##
                 pass
             elif 'prev' in args['player_cmd']:
+                ##FIXIT##
                 pass
             elif 'quit' in args['player_cmd']:
                 sys.exit()
@@ -512,9 +516,9 @@ class Application:
             except IOError: 
                 continue
             if procname[:-1] in self.process_names:
-                #Turn down the music if actually playing (not paused) ##FIXIT## Introduced proc_volume
+                #Turn down the music if actually playing (not paused)
                 logging.debug("Flagged process found: {} | Process countdown: {} | Player Status: {}".format(procname[:-1], self.proc_countdown, self.mp.status))
-                if self.mp.status == 1 and self.proc_countdown == 0:
+                if self.mp.status == 1 and self.proc_countdown == 0: ##FIXIT## If process is running when player starts (status not set to Playing yet), countdown is started without turning down the volume.
                     if self.config['proc_volume']:
                         logging.debug("Proc_volume: {} | Fading volume to match proc_volume".format(self.config['proc_volume']))
                         self.mp.fade(self.mp.mixer.get_volume(), self.config['proc_volume'], fade_duration=self.config['proc_fade'], step_duration=10) #Proc_step?
@@ -540,7 +544,7 @@ class Application:
         
     def play_on_idle(self):
         logging.debug("Checking play on idle...")
-        if not self.mp.status == 1 and not self.mp.fade_status:
+        if not self.mp.status == 1 and not self.mp.fade_status and not self.proc_mute:
             logging.debug("Music is not playing and fading, playing song.")
             self.mp.play()
         logging.debug("Play on idle check complete")

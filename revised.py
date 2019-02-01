@@ -609,6 +609,9 @@ help_message = "\
 
 if __name__ == "__main__":
     logging.debug("----------= EmulationStation BGM =----------")
+    if (len(sys.argv) > 1 and sys.argv[1] == 'help') or len(sys.argv) == 1:
+        print(help_message)
+        sys.exit()
     app = Application(config_path=config_path, process_names=proc_names)
     logging.debug("v IGNORE vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv")
     app.start_configurator()
@@ -618,9 +621,4 @@ if __name__ == "__main__":
         if sys.argv[1] == 'start':
             app.run()
     elif PID and len(sys.argv) > 1:
-        if sys.argv[1] == 'help':
-            print(help_message)
-        else:
-            app.controller(PID, sys.argv[1:])
-    else:
-        print(help_message)
+        app.controller(PID, sys.argv[1:])

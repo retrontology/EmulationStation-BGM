@@ -1,8 +1,9 @@
 #!/usr/bin/env python2
 from __future__ import division
 import os, sys, time, random, atexit, threading, ast, ConfigParser, logging
-logging.disable(logging.DEBUG)
+log_level_disable = logging.NOTSET #logging.DEBUG
 config_path = '~/github/emulationstation-bgm/addons.ini' # '~/RetroPie/scripts/addons.ini'
+log_path = os.path.join(os.path.dirname(os.path.expanduser(config_path)), 'esbgm.log')
 proc_names = ['htop'] #None
 # proc_names = ["wolf4sdl-3dr-v14", "wolf4sdl-gt-v14", "wolf4sdl-spear", "wolf4sdl-sw-v14", 
     # "xvic","xvic cart","xplus4","xpet","x128","x64sc","x64","PPSSPPSDL","prince",
@@ -49,8 +50,8 @@ def readline(pipein):
                     buffered_lines = buffered_lines[(r+1):]
 ##############################################################################
 
-log_path = os.path.join(os.path.dirname(os.path.expanduser(config_path)), 'esbgm.log')
-logging.basicConfig(filename=log_path,level=logging.DEBUG)
+logging.basicConfig(filename=log_path, level=logging.DEBUG)
+logging.disable(log_level_disable)
 class Player(object):
     def __init__(self):
         logging.debug("Instantiating all music player variables")
@@ -283,14 +284,15 @@ class Configurator():
         
     def write_config(self, valid_config):
         logging.debug("Writing to config")
+        config = self.sanitize_config(valid_config)
         write_config = False
         if not self.parser.has_section(self.cfg_name):
             self.parser.add_section(self.cfg_name)
             write_config = True
         for option in self.defaults.keys():
-            if not self.parser.has_option(self.cfg_name, option) or ( self.parser.has_option(self.cfg_name, option) and valid_config[option] != self.parser.get(self.cfg_name, option) ):
-                self.parser.set(self.cfg_name, option, valid_config[option])
-                logging.debug("Adding to config: {} = {}".format(option, valid_config[option]))
+            if not self.parser.has_option(self.cfg_name, option) or ( self.parser.has_option(self.cfg_name, option) and config[option] != self.parser.get(self.cfg_name, option) ):
+                self.parser.set(self.cfg_name, option, config[option])
+                logging.debug("Adding to config: {} = {}".format(option, config[option]))
                 write_config = True
         if write_config:
             with open(self.config_path, 'w') as f:
@@ -346,9 +348,17 @@ class Configurator():
             if not check_pass:
                 logging.warning("{}".format(invalid_warning))
                 verified_cfg_delta.pop(option, None)
+        logging.debug("Verified config data: {}".format(verified_cfg_delta))
+        return verified_cfg_delta
+    
+    def sanitize_config(self, cfg_delta):
+        logging.debug("Sanitizing configs and including defaults")
+        config_file = self.verify_config(self.read_config())
+        config_changes = self.verify_config(cfg_delta)
         config = self.defaults.copy()
-        config.update(verified_cfg_delta)
-        logging.debug("Verified config data: {}".format(config))
+        config.update(config_file)
+        config.update(config_changes)
+        logging.debug("Sanitized configs")
         return config
 
 class Application:
@@ -377,12 +387,11 @@ class Application:
     
     def start_configurator(self):
         logging.debug("Starting configurator, updating configs")
-        cfg = self.c.read_config()
-        cfg = self.c.verify_config(cfg)
+        cfg = self.c.sanitize_config({})
         self.update_config(config=cfg)
         if self.mp:
             self.mp.update_config(config=cfg)
-        self.c.write_config(cfg)
+        self.c.write_config({})
         logging.debug("Finished updating configurations")
     
     def update_config(self, config={}):
@@ -464,7 +473,7 @@ class Application:
         parsed_args = {'player_cmd': {}, 'values': {}, 'flags': set()}
         if args:
             if not args[0] in ['set', 'play', 'stop', 'next', 'prev', 'quit']:
-                logging.warning("Missing player command, tossing all arguments.")
+                logging.warning("Missing player command, tossing all arguments")
             else:
                 player_cmd = args.pop(0)
                 options = ['song_name', 'enabled', 'pipe_file', 'start_delay', 'start_song', 'proc_delay', 'proc_fade', 'proc_volume', 'main_loop_sleep', 'music_dir', 'max_volume', 'fade_duration', 'step_duration', 'reset', ]
@@ -476,7 +485,7 @@ class Application:
                         if arg in ['--force', '--random']: flags.update([arg[2:]]); continue # Process force/random flags
                         values.update({option: args.pop(0) for option in options if arg in '--{}'.format(option)}) # Add all known options with arguments to values
                     except IndexError:
-                        print("Missing argument.")
+                        logging.warning("Missing an argument")
                 parsed_args.update({'player_cmd': player_cmd, 'values': values, 'flags': flags})
         logging.debug("Parsing complete: {}".format(parsed_args))
         return parsed_args
@@ -484,7 +493,8 @@ class Application:
     def process_args(self, args):
         # Sanitized args should be passed as dictionary
         logging.debug("Processing arguments into actions: {}".format(args))
-        args.update({ 'values' : self.c.verify_config(args['values']) })
+        values = self.c.verify_config(args['values'])
+        args.update({ 'values' : values })
         if 'set' in args['player_cmd']:
             self.update_config(config=args['values'])
             if self.mp:
@@ -551,15 +561,16 @@ class Application:
     
     def controller(self, parent_PID, args):
         self.start_configurator()
-        print(args)
         args = self.parse_args(args)
         self.process_args(args)
-        #pipeout = os.open('{}.{}'.format(self.config['pipe_file'], parent_PID), os.O_WRONLY)
         ##FIXIT##
         # Parse arguments into config dict
         # verify config dict
         # pass config dict arguments to pipe
-        #os.write(pipeout, '%s\n' % args)
+        if parent_PID:
+            #pipeout = os.open('{}.{}'.format(self.config['pipe_file'], parent_PID), os.O_WRONLY)
+            #os.write(pipeout, '%s\n' % args)
+            pass
 
     def clean_pipe(self, pipe_file):
         logging.debug("Cleaning pipe file: {}".format(pipe_file))
@@ -614,11 +625,13 @@ if __name__ == "__main__":
         sys.exit()
     app = Application(config_path=config_path, process_names=proc_names)
     logging.debug("v IGNORE vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv")
+    logging.disable(logging.WARNING)
     app.start_configurator()
+    logging.disable(log_level_disable)
     logging.debug("^ IGNORE ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
     PID = check_pipes(os.path.expanduser(app.config['pipe_file']))
-    if not PID and len(sys.argv) > 1:
+    if PID and len(sys.argv) > 1:
         if sys.argv[1] == 'start':
             app.run()
-    elif PID and len(sys.argv) > 1:
+    elif len(sys.argv) > 1:
         app.controller(PID, sys.argv[1:])

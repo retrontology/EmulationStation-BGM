@@ -34,6 +34,8 @@ function main() {
             STEP_DURATION=$(extract_config step_duration)
             PROC_DELAY=$(extract_config proc_delay)
             PROC_FADE=$(extract_config proc_fade)
+            PROC_VOL=$(extract_config proc_volume | awk '{print $1 * 100}')
+            MAINLOOP=$(extract_config main_loop_sleep)
             START_DELAY=$(extract_config start_delay)
             RESET=$(extract_config reset)
             ENABLED=$(extract_config enabled)
@@ -54,11 +56,13 @@ function main() {
                 4 "Step Duration (${STEP_DURATION}ms)"
                 5 "Proc Delay (${PROC_DELAY}ms)"
                 6 "Proc Fade Duration (${PROC_FADE}ms)"
-                7 "Startup Delay (${START_DELAY}ms)"
-                8 "Restart on Resume ($RESET)"
-                9 "Initial Song (${INIT_SONG})"
-                10 "Change Music Folder"
-                11 "Uninstall ES BGM")
+                7 "Proc Volume (${PROC_VOL}%)"
+                8 "Main loop sleep (${MAINLOOP}ms)"
+                9 "Startup Delay (${START_DELAY}ms)"
+                10 "Restart on Resume ($RESET)"
+                11 "Initial Song (${INIT_SONG})"
+                12 "Change Music Folder"
+                13 "Uninstall ES BGM")
         else
             options=( \
                 1 "Install ES BGM")
@@ -71,65 +75,68 @@ function main() {
             4) set_step_duration ;;
             5) set_proc_delay ;;
             6) set_proc_fade ;;
-            7) set_startup_delay ;;
-            8) restart_on_resume ;;
-            9) set_init_song ;;
-            10) set_music_dir ;;
-            11) uninstall_bgm ;;
+            7) set_proc_volume ;;
+            8) set_main_loop_sleep ;;
+            9) set_startup_delay ;;
+            10) restart_on_resume ;;
+            11) set_start_song ;;
+            12) set_music_dir ;;
+            13) uninstall_bgm ;;
             *) exit ;;
         esac
     done
 }
 function set_bgm_enable() {
     if [ "$ENABLED" == "True" ]; then
-        python2 $INSTALL_LOC set --disable
+        python2 $INSTALL_LOC set --enabled False
         # Maybe remove from autostart.sh, runcommand, etc. and kill as well.
         echo "EmulationStation BGM is now disabled."
         sleep $INFO_DELAY
     else
-        python2 $INSTALL_LOC set --enable
-        python2 $INSTALL_LOC play
+        python2 $INSTALL_LOC set --enabled True
+        #Theoretically no process
+        nohup python2 $INSTALL_LOC start > /dev/null 2>&1 &
         echo "EmulationStation BGM is now enabled."
         sleep $INFO_DELAY
     fi
 }
 function set_bgm_volume() {
-    local NEW_VOL
-    NEW_VOL=$(dialog \
+    local NEW_VAL
+    NEW_VAL=$(dialog \
         --backtitle "$BACKTITLE" \
         --title "$TITLE" \
         --rangebox "Set volume level (D+/U-): " 0 50 0 100 "$CUR_VOL" \
         2>&1 >/dev/tty)
-    if [ "$NEW_VOL" != "" ]; then
-        echo "BGM volume set to $NEW_VOL%"
-        NEW_VOL=`echo $NEW_VOL | awk '{print $1 / 100}'`
-        python2 $INSTALL_LOC set --volume $NEW_VOL
+    if [ "$NEW_VAL" != "" ]; then
+        echo "BGM volume set to $NEW_VAL%"
+        NEW_VAL=`echo $NEW_VAL | awk '{print $1 / 100}'`
+        python2 $INSTALL_LOC set --max_volume $NEW_VAL
         sleep $INFO_DELAY
     fi
 }
 function set_fade_duration() {
-    local NEW_FADE
-    NEW_FADE=$(dialog \
+    local NEW_VAL
+    NEW_VAL=$(dialog \
         --backtitle "$BACKTITLE" \
         --title "$TITLE" \
         --rangebox "Set fade duration in milliseconds (D+/U-): " 0 50 0 10000 "$FADE_DURATION" \
         2>&1 >/dev/tty)
-    if [ "$NEW_FADE" != "" ]; then
-        echo "Music fade duration set to ${NEW_FADE}ms"
-        python2 $INSTALL_LOC set --fade_duration $NEW_FADE
+    if [ "$NEW_VAL" != "" ]; then
+        echo "Music fade duration set to ${NEW_VAL}ms"
+        python2 $INSTALL_LOC set --fade_duration $NEW_VAL
         sleep $INFO_DELAY
     fi
 }
 function set_step_duration() {
-    local NEW_STEP
-    NEW_STEP=$(dialog \
+    local NEW_VAL
+    NEW_VAL=$(dialog \
         --backtitle "$BACKTITLE" \
         --title "$TITLE" \
         --rangebox "Set step duration in milliseconds (D+/U-): " 0 50 0 1000 "$STEP_DURATION" \
         2>&1 >/dev/tty)
-    if [ "$NEW_STEP" != "" ]; then
-        echo "Music step duration set to ${NEW_STEP}ms"
-        python2 $INSTALL_LOC set --step_duration $NEW_STEP
+    if [ "$NEW_VAL" != "" ]; then
+        echo "Music step duration set to ${NEW_VAL}ms"
+        python2 $INSTALL_LOC set --step_duration $NEW_VAL
         sleep $INFO_DELAY
     fi
 }
@@ -159,6 +166,33 @@ function set_proc_fade() {
         sleep $INFO_DELAY
     fi
 }
+function set_proc_volume(){
+    local NEW_VAL
+    NEW_VAL=$(dialog \
+        --backtitle "$BACKTITLE" \
+        --title "$TITLE" \
+        --rangebox "Set volume level (D+/U-): " 0 50 0 100 "$PROC_VOL" \
+        2>&1 >/dev/tty)
+    if [ "$NEW_VAL" != "" ]; then
+        echo "BGM volume during processes set to $NEW_VAL%"
+        NEW_VAL=`echo $NEW_VAL | awk '{print $1 / 100}'`
+        python2 $INSTALL_LOC set --proc_volume $NEW_VAL
+        sleep $INFO_DELAY
+    fi
+}
+function set_main_loop_sleep(){
+    local NEW_VAL
+    NEW_VAL=$(dialog \
+        --backtitle "$BACKTITLE" \
+        --title "$TITLE" \
+        --rangebox "Set main loop sleep in milliseconds (D+/U-): " 0 50 0 1000 "$MAINLOOP" \
+        2>&1 >/dev/tty)
+    if [ "$NEW_VAL" != "" ]; then
+        echo "Main loop sleep duration set to ${NEW_VAL}ms"
+        python2 $INSTALL_LOC set --step_duration $NEW_VAL
+        sleep $INFO_DELAY
+    fi
+}
 function set_startup_delay() {
     local NEW_DELAY
     NEW_DELAY=$(dialog \
@@ -183,7 +217,7 @@ function restart_on_resume() {
         sleep $INFO_DELAY
     fi
 }
-function set_init_song() {
+function set_start_song() {
     local choice
     local index
     cmd=(dialog \
@@ -211,7 +245,7 @@ function set_init_song() {
             fi
             # Escape all sed offending filepath possible characters
             # https://stackoverflow.com/questions/15783701/which-characters-need-to-be-escaped-when-using-bash
-            #INIT_SONG=$(echo "$INIT_SONG"| LC_ALL=C sed -e 's/[^a-zA-Z0-9,._+@%/-]/\\&/g; 1!s/^/"/; $!s/$/"/')
+            #START_SONG=$(echo "$START_SONG"| LC_ALL=C sed -e 's/[^a-zA-Z0-9,._+@%/-]/\\&/g; 1!s/^/"/; $!s/$/"/')
             python2 $INSTALL_LOC set --start_song "$NEW_SONG"
             echo "Initial song changed to '$NEW_SONG'"
             sleep $INFO_DELAY
@@ -262,9 +296,9 @@ function install_bgm() {
         sudo apt-get update && sudo apt-get install -y $PKG
     fi
     echo "Installing EmulationStation BGM by Jurassicplayer..."
-    #wget -O "$INSTALL_LOC" --progress=bar:force:noscroll --show-progress -q "##FIXIT##"
+    #wget -O "$INSTALL_LOC" --progress=bar:force:noscroll --show-progress -q "https://gitlab.com/jurassicplayer/emulationstation-bgm/raw/master/emulationstation_bgm.py"
     echo "Adding entry to /opt/retropie/configs/all/autostart.sh..."
-    sed -i.bak "s|.*emulationstation #auto$|(python2 $INSTALL_LOC) \&\n&|" /opt/retropie/configs/all/autostart.sh
+    sed -i.bak "s|.*emulationstation #auto$|(nohup python2 $INSTALL_LOC start > /dev/null 2>&1) \&\n&|" /opt/retropie/configs/all/autostart.sh
     echo "Adding entry to /opt/retropie/configs/all/runcommand-onstart.sh..."
     if [ -f "/opt/retropie/configs/all/runcommand-onstart.sh" ]; then
         cp "/opt/retropie/configs/all/runcommand-onstart.sh" "/opt/retropie/configs/all/runcommand-onstart.bak"
@@ -275,7 +309,7 @@ function install_bgm() {
         cp "/opt/retropie/configs/all/runcommand-onend.sh" "/opt/retropie/configs/all/runcommand-onend.bak"
     fi
     echo "(python2 $INSTALL_LOC play) &" >> "/opt/retropie/configs/all/runcommand-onend.sh"
-    nohup python2 $INSTALL_LOC &
+    nohup python2 $INSTALL_LOC start > /dev/null 2>&1 &
     sleep $INFO_DELAY
 }
 

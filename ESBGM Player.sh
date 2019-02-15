@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INSTALL_LOC="/home/pi/RetroPie/scripts/emulationstation_bgm.py"
+INSTALL_LOC="/home/pigaming/retroarena/scripts/emulationstation_bgm.py"
 BACKTITLE="Techitechi-chan's Toolbox"
 TITLE="EmulationStation BGM Player"
 INFO_DELAY=3
@@ -13,7 +13,7 @@ function main() {
         PKG_STATUS=0
         # Check for installation of script
         #if [ -f "$INSTALL_LOC" ]; then
-        grep emulationstation_bgm /opt/retropie/configs/all/autostart.sh > /dev/null 2>&1
+        grep emulationstation_bgm /opt/retroarena/configs/all/autostart.sh > /dev/null 2>&1
         if [ $? -eq 0 ] && [ -f "$INSTALL_LOC" ]; then
             PKG_STATUS=1
         fi

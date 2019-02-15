@@ -1,7 +1,7 @@
 #!/bin/bash
 
-INSTALL_LOC="/home/pi/RetroPie/scripts/emulationstation_bgm.py"
-INI_LOC="/home/pi/RetroPie/scripts/addons.ini"
+INSTALL_LOC="/home/pigaming/RetroArena/scripts/emulationstation_bgm.py"
+INI_LOC="/home/pigaming/RetroArena/scripts/addons.ini"
 SECTION="EmulationStationBGM"
 BACKTITLE="Techitechi-chan's Toolbox"
 TITLE="EmulationStation BGM"
@@ -26,7 +26,7 @@ function main() {
         PKG_STATUS=0
         # Check for installation of script
         #if [ -f "$INSTALL_LOC" ]; then
-        grep emulationstation_bgm /opt/retropie/configs/all/autostart.sh > /dev/null 2>&1
+        grep emulationstation_bgm /opt/retroarena/configs/all/autostart.sh > /dev/null 2>&1
         if [ $? -eq 0 ] && [ -f "$INSTALL_LOC" ]; then
             PKG_STATUS=1
             CUR_VOL=$(extract_config max_volume | awk '{print $1 * 100}')
@@ -283,9 +283,9 @@ function install_bgm() {
     DISCLAIMER="${DISCLAIMER}   - Installation of python-pygame \n"
     DISCLAIMER="${DISCLAIMER}   - Downloading EmulationStation BGM from github \n"
     DISCLAIMER="${DISCLAIMER}   - Backup and addition of entries to: \n"
-    DISCLAIMER="${DISCLAIMER}       - /opt/retropie/configs/all/autostart.sh \n"
-    DISCLAIMER="${DISCLAIMER}       - /opt/retropie/configs/all/runcommand-onstart.sh \n"
-    DISCLAIMER="${DISCLAIMER}       - /opt/retropie/configs/all/runcommand-onend.sh \n"
+    DISCLAIMER="${DISCLAIMER}       - /opt/retroarena/configs/all/autostart.sh \n"
+    DISCLAIMER="${DISCLAIMER}       - /opt/retroarena/configs/all/runcommand-onstart.sh \n"
+    DISCLAIMER="${DISCLAIMER}       - /opt/retroarena/configs/all/runcommand-onend.sh \n"
     DISCLAIMER="${DISCLAIMER}\n\n For more information about EmulationStation BGM, visit '##FIXIT##'\n"
     dialog \
         --backtitle "$BACKTITLE" \
@@ -297,18 +297,18 @@ function install_bgm() {
     fi
     echo "Installing EmulationStation BGM by Jurassicplayer..."
     #wget -O "$INSTALL_LOC" --progress=bar:force:noscroll --show-progress -q "https://gitlab.com/jurassicplayer/emulationstation-bgm/raw/master/emulationstation_bgm.py"
-    echo "Adding entry to /opt/retropie/configs/all/autostart.sh..."
-    sed -i.bak "s|.*emulationstation #auto$|(nohup python2 $INSTALL_LOC start > /dev/null 2>&1) \&\n&|" /opt/retropie/configs/all/autostart.sh
-    echo "Adding entry to /opt/retropie/configs/all/runcommand-onstart.sh..."
-    if [ -f "/opt/retropie/configs/all/runcommand-onstart.sh" ]; then
-        cp "/opt/retropie/configs/all/runcommand-onstart.sh" "/opt/retropie/configs/all/runcommand-onstart.bak"
+    echo "Adding entry to /opt/retroarena/configs/all/autostart.sh..."
+    sed -i.bak "s|.*emulationstation #auto$|(nohup python2 $INSTALL_LOC start > /dev/null 2>&1) \&\n&|" /opt/retroarena/configs/all/autostart.sh
+    echo "Adding entry to /opt/retroarena/configs/all/runcommand-onstart.sh..."
+    if [ -f "/opt/retroarena/configs/all/runcommand-onstart.sh" ]; then
+        cp "/opt/retroarena/configs/all/runcommand-onstart.sh" "/opt/retroarena/configs/all/runcommand-onstart.bak"
     fi
-    echo "(python2 $INSTALL_LOC stop --fade_duration 1000 --force) &" >> "/opt/retropie/configs/all/runcommand-onstart.sh"
-    echo "Adding entry to /opt/retropie/configs/all/runcommand-onend.sh..."
-    if [ -f "/opt/retropie/configs/all/runcommand-onend.sh" ]; then
-        cp "/opt/retropie/configs/all/runcommand-onend.sh" "/opt/retropie/configs/all/runcommand-onend.bak"
+    echo "(python2 $INSTALL_LOC stop --fade_duration 1000 --force) &" >> "/opt/retroarena/configs/all/runcommand-onstart.sh"
+    echo "Adding entry to /opt/retroarena/configs/all/runcommand-onend.sh..."
+    if [ -f "/opt/retroarena/configs/all/runcommand-onend.sh" ]; then
+        cp "/opt/retroarena/configs/all/runcommand-onend.sh" "/opt/retroarena/configs/all/runcommand-onend.bak"
     fi
-    echo "(python2 $INSTALL_LOC play) &" >> "/opt/retropie/configs/all/runcommand-onend.sh"
+    echo "(python2 $INSTALL_LOC play) &" >> "/opt/retroarena/configs/all/runcommand-onend.sh"
     nohup python2 $INSTALL_LOC start > /dev/null 2>&1 &
     sleep $INFO_DELAY
 }
@@ -348,12 +348,12 @@ function uninstall_bgm() {
         echo "Uninstalling EmulationStation BGM..."
         rm "${PIPE_FILE}.*"
         rm "$INSTALL_LOC"
-        echo "Removing entry from /opt/retropie/configs/all/autostart.sh..."
-        sed -i.bak '/emulationstation_bgm/d' /opt/retropie/configs/all/autostart.sh
-        echo "Removing entry from /opt/retropie/configs/all/runcommand-onstart.sh..."
-        sed -i.bak '/emulationstation_bgm/d' /opt/retropie/configs/all/runcommand-onstart.sh
-        echo "Removing entry from /opt/retropie/configs/all/runcommand-onend.sh..."
-        sed -i.bak '/emulationstation_bgm/d' /opt/retropie/configs/all/runcommand-onend.sh
+        echo "Removing entry from /opt/retroarena/configs/all/autostart.sh..."
+        sed -i.bak '/emulationstation_bgm/d' /opt/retroarena/configs/all/autostart.sh
+        echo "Removing entry from /opt/retroarena/configs/all/runcommand-onstart.sh..."
+        sed -i.bak '/emulationstation_bgm/d' /opt/retroarena/configs/all/runcommand-onstart.sh
+        echo "Removing entry from /opt/retroarena/configs/all/runcommand-onend.sh..."
+        sed -i.bak '/emulationstation_bgm/d' /opt/retroarena/configs/all/runcommand-onend.sh
         sleep $READ_DELAY
     fi
 }

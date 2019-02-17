@@ -273,7 +273,7 @@ class Configurator():
             'proc_fade'       : '800',
             'proc_volume'     : '0.01',
             'main_loop_sleep' : '1000',
-            'music_dir'       : '~/RetroArena/music',
+            'music_dir'       : '~/RetroArena/bgm',
             'max_volume'      : '0.20',
             'fade_duration'   : '3000',
             'step_duration'   : '20',

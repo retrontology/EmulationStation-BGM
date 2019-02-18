@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INSTALL_LOC="/home/pigaming/retroarena/scripts/emulationstation_bgm.py"
+INSTALL_LOC="/home/pigaming/RetroArena/scripts/emulationstation_bgm.py"
 BACKTITLE="Techitechi-chan's Toolbox"
 TITLE="EmulationStation BGM Player"
 INFO_DELAY=3

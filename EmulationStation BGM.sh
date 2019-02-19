@@ -1,7 +1,7 @@
 #!/bin/bash
 
-INSTALL_LOC="/home/pigaming/RetroArena/scripts/emulationstation_bgm.py"
-INI_LOC="/home/pigaming/RetroArena/scripts/addons.ini"
+INSTALL_LOC="/home/pigaming/RetroArena/scriptmodules/supplementary/esbgm/emulationstation_bgm.py"
+INI_LOC="/home/pigaming/RetroArena/scriptmodules/supplementary/esbgm/addons.ini"
 SECTION="EmulationStationBGM"
 BACKTITLE="Techitechi-chan's Toolbox"
 TITLE="EmulationStation BGM"
